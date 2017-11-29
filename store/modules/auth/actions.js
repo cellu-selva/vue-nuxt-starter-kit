@@ -1,6 +1,6 @@
 import * as types from './mutation-type'
-import axios from 'axios'
 import { setToken, unsetToken } from '~/utils/auth'
+import client from '~/server/client.js'
 
 /* eslint-disable*/
 export default {
@@ -11,7 +11,7 @@ export default {
   },
   async login ({ commit, state }, credential) {
     try {
-      const { data } = await axios.post(`http://localhost:3001/api/users/login?include=user`, credential)
+      const { data } = await client.post(`/api/users/login?include=user`, credential)
       commit(types.SET_USER, data)
       setToken(data)
       window.$nuxt.$router.replace({ path: '/' })
@@ -25,7 +25,7 @@ export default {
   },
   async register ({ commit, state }, user) {
     try {
-      const { data } = await axios.post(`http://localhost:3001/api/users`, user)
+      const { data } = await client.post(`/api/users`, user)
       window.$nuxt.$router.replace({ path: '/auth/login' })
     } catch (error) {
       if (error.response && error.response.status === 401) {
@@ -36,7 +36,7 @@ export default {
 
   },
   async logout({ commit, state }) {
-   await axios.post('http://localhost:3001/api/users/logout?access_token='+ state.authUser.id)
+   await client.post(`/api/users/logout?access_token=${state.authUser.id}`)
    commit(types.UNSET_USER)
    unsetToken()
    window.$nuxt.$router.replace({ path: '/auth/login' })
@@ -44,9 +44,9 @@ export default {
  async fetchUser({ commit, state }) {
    const authUser = JSON.parse(localStorage.getItem('user'))
    if(authUser) {
-     const { data } = await axios.get('http://localhost:3001/api/AccessTokens/' + authUser.id +'?filter={"include": "user"}')
+     const { data } = await client.get('http://localhost:3001/api/AccessTokens/' + authUser.id +'?filter={"include": "user"}')
      commit(types.SET_USER, data)
    }
  }
- 
+
 }
